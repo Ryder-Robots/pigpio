@@ -1233,6 +1233,7 @@ static volatile uint32_t clk_plld_freq = CLK_PLLD_FREQ;
 static volatile uint32_t hw_pwm_max_freq = PI_HW_PWM_MAX_FREQ;
 static volatile uint32_t hw_clk_min_freq = PI_HW_CLK_MIN_FREQ;
 static volatile uint32_t hw_clk_max_freq = PI_HW_CLK_MAX_FREQ;
+static volatile uint32_t pi_gpio_sysfs_base = 0; 
 
 static int libInitialised = 0;
 
@@ -11913,7 +11914,7 @@ static void *pthISRThread(void *x)
       isr->gpio, isr->edge, isr->timeout, (uintptr_t)isr->func,
       isr->ex, (uintptr_t)isr->userdata);
 
-   sprintf(buf, "/sys/class/gpio/gpio%d/value", isr->gpio);
+   sprintf(buf, "/sys/class/gpio/gpio%d/value", isr->gpio + pi_gpio_sysfs_base);
 
    isr->fd = -1; /* no fd assigned */
 
@@ -11988,11 +11989,11 @@ static int intGpioSetISRFunc(
          if (fd < 0) return PI_BAD_ISR_INIT;
 
          /* ignore write fail if already exported */
-         sprintf(buf, "%d\n", gpio);
+         sprintf(buf, "%d\n", gpio + pi_gpio_sysfs_base);
          err = write(fd, buf, strlen(buf));
          close(fd);
 
-         sprintf(buf, "/sys/class/gpio/gpio%d/direction", gpio);
+         sprintf(buf, "/sys/class/gpio/gpio%d/direction", gpio + pi_gpio_sysfs_base);
          fd = open(buf, O_WRONLY);
          if (fd < 0) return PI_BAD_ISR_INIT;
 
@@ -12009,7 +12010,7 @@ static int intGpioSetISRFunc(
 
       if (gpioISR[gpio].edge != edge)
       {
-         sprintf(buf, "/sys/class/gpio/gpio%d/edge", gpio);
+         sprintf(buf, "/sys/class/gpio/gpio%d/edge", gpio + pi_gpio_sysfs_base);
          fd = open(buf, O_WRONLY);
          if (fd < 0) return PI_BAD_ISR_INIT;
 
@@ -12059,7 +12060,7 @@ static int intGpioSetISRFunc(
       {
          fd = open("/sys/class/gpio/unexport", O_WRONLY);
          if (fd < 0) return PI_BAD_ISR_INIT;
-         sprintf(buf, "%d\n", gpio);
+         sprintf(buf, "%d\n", gpio + pi_gpio_sysfs_base);
          err = write(fd, buf, strlen(buf));
          close(fd);
          if (err != strlen(buf)) return PI_BAD_ISR_INIT;
@@ -14012,6 +14013,7 @@ unsigned gpioHardwareRevision(void)
             pi_peri_phys = 0x3F000000;
             pi_dram_bus  = 0xC0000000;
             pi_mem_flag  = 0x04;
+            pi_gpio_sysfs_base = 0;
             break;
 
          case 0x3:   /* BCM2711 */
@@ -14026,6 +14028,7 @@ unsigned gpioHardwareRevision(void)
             hw_pwm_max_freq = PI_HW_PWM_MAX_FREQ_2711;
             hw_clk_min_freq = PI_HW_CLK_MIN_FREQ_2711;
             hw_clk_max_freq = PI_HW_CLK_MAX_FREQ_2711;
+            pi_gpio_sysfs_base = 512;
             break;
 
          default:
@@ -14040,6 +14043,7 @@ unsigned gpioHardwareRevision(void)
    DBG(DBG_USER, "pi_peri_phys=%x", pi_peri_phys);
    DBG(DBG_USER, "pi_dram_bus=%x", pi_dram_bus);
    DBG(DBG_USER, "pi_mem_flag=%x", pi_mem_flag);
+   DBG(DBG_USER, "pi_gpio_sysfs_base=%x", pi_gpio_sysfs_base);
 
    return rev;
 }
