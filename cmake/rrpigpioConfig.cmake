@@ -1,2 +1,6 @@
+include(CMakeFindDependencyMacro)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
+find_dependency(Threads)
+find_dependency(RT)
 include(${CMAKE_CURRENT_LIST_DIR}/rrpigpioTargets.cmake)
-set(rrpigpio_TARGETS rrpigpio::pigpio)
+set(rrpigpio_TARGETS rrpigpio::rrpigpio)
