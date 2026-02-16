@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-
-project(pigpio LANGUAGES C VERSION 0.71)
+project(rrpigpio LANGUAGES C VERSION 0.71)
 
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
@@ -45,82 +44,68 @@ add_executable(pig2vcd pig2vcd.c command.c)
 target_link_libraries(pig2vcd Threads::Threads)
 
 # Configure and install project
+include(GenerateExportHeader)
+include(CMakePackageConfigHelpers)
 
-include (GenerateExportHeader)
-include (CMakePackageConfigHelpers)
-
-generate_export_header(${PROJECT_NAME})
+generate_export_header(pigpio)
 
 install(TARGETS pigpio pigpiod_if pigpiod_if2 pig2vcd pigpiod pigs
-    EXPORT ${PROJECT_NAME}Targets
-	LIBRARY  DESTINATION lib${LIB_SUFFIX}
-	ARCHIVE  DESTINATION lib${LIB_SUFFIX}
-	RUNTIME  DESTINATION bin
-	INCLUDES DESTINATION include
+    EXPORT rrpigpioTargets
+    LIBRARY  DESTINATION lib${LIB_SUFFIX}
+    ARCHIVE  DESTINATION lib${LIB_SUFFIX}
+    RUNTIME  DESTINATION bin
+    INCLUDES DESTINATION include
 )
 
 write_basic_package_version_file(
-	"${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-	VERSION ${${PROJECT_NAME}_VERSION}
-	COMPATIBILITY AnyNewerVersion
+    "${CMAKE_CURRENT_BINARY_DIR}/rrpigpioConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
 )
 
-export(EXPORT ${PROJECT_NAME}Targets
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake"
-  NAMESPACE pigpio::
+export(EXPORT rrpigpioTargets
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/rrpigpioTargets.cmake"
+    NAMESPACE rrpigpio::
 )
 
-set(ConfigPackageLocation lib/cmake/${PROJECT_NAME})
-install(EXPORT ${PROJECT_NAME}Targets
-  FILE
-    ${PROJECT_NAME}Targets.cmake
-  NAMESPACE
-    pigpio::
-  DESTINATION
-    ${ConfigPackageLocation}
+set(ConfigPackageLocation lib/cmake/rrpigpio)
+
+install(EXPORT rrpigpioTargets
+    FILE rrpigpioTargets.cmake
+    NAMESPACE rrpigpio::
+    DESTINATION ${ConfigPackageLocation}
 )
 
 install(
-  FILES
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/${PROJECT_NAME}Config.cmake
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-  DESTINATION
-    ${ConfigPackageLocation}
+    FILES
+        ${CMAKE_CURRENT_LIST_DIR}/cmake/rrpigpioConfig.cmake
+        "${CMAKE_CURRENT_BINARY_DIR}/rrpigpioConfigVersion.cmake"
+    DESTINATION
+        ${ConfigPackageLocation}
 )
 
 install(FILES pigpio.h pigpiod_if.h pigpiod_if2.h
-	DESTINATION include
-	PERMISSIONS OWNER_READ OWNER_WRITE
-		GROUP_READ
-		WORLD_READ
+    DESTINATION include
+    PERMISSIONS OWNER_READ OWNER_WRITE
+        GROUP_READ
+        WORLD_READ
 )
 
 file(GLOB man_1_SRC "*.1")
 install(FILES ${man_1_SRC}
-	DESTINATION man/man1
-	PERMISSIONS OWNER_READ OWNER_WRITE
-		GROUP_READ
-		WORLD_READ
+    DESTINATION man/man1
+    PERMISSIONS OWNER_READ OWNER_WRITE
+        GROUP_READ
+        WORLD_READ
 )
 
 file(GLOB man_3_SRC "*.3")
 install(FILES ${man_3_SRC}
-	DESTINATION man/man3
-	PERMISSIONS OWNER_READ OWNER_WRITE
-		GROUP_READ
-		WORLD_READ
+    DESTINATION man/man3
+    PERMISSIONS OWNER_READ OWNER_WRITE
+        GROUP_READ
+        WORLD_READ
 )
-
-# Install python modules.
-# find_package(Python COMPONENTS Interpreter QUIET)
-
-# if(Python_FOUND)
-# 	configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/setup.py.in
-# 		${CMAKE_CURRENT_BINARY_DIR}/setup.py
-# 	)
-
-# 	install(CODE "execute_process(COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup.py install)")
-# endif()
 
 # package project
 set(CPACK_PACKAGE_NAME "rrpigpio")
@@ -135,4 +120,4 @@ set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "pigpio library (Ryder Robots fork)
  NOT supported by the original author.")
 set(CPACK_GENERATOR "DEB")
 
-include (CPack)
+include(CPack)
